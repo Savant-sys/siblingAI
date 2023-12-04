@@ -2,24 +2,36 @@
 import fs from 'fs';
 import path from 'path';
 
+const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
+
+const loadBrain = () => {
+  try {
+    const data = fs.readFileSync(brainFilePath, 'utf8');
+    return JSON.parse(data).questions;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      saveBrain({ questions: [] });
+      return [];
+    } else {
+      throw error;
+    }
+  }
+};
+
+const saveBrain = (brain) => {
+  fs.writeFileSync(brainFilePath, JSON.stringify({ questions: brain }, null, 2), 'utf8');
+};
+
 export default function handler(req, res) {
   if (req.method === 'POST') {
     const { question, answer } = req.body;
-    const filePath = path.join(process.cwd(), 'data', 'brain.json');
-    const jsonData = fs.readFileSync(filePath, 'utf8');
-    const brain = JSON.parse(jsonData);
+    const questions = loadBrain();
 
-    const existingQuestionIndex = brain.questions.findIndex(q => q.question === question);
-    if (existingQuestionIndex !== -1) {
-      brain.questions[existingQuestionIndex].answer = answer;
-    } else {
-      brain.questions.push({ question, answer });
-    }
+    questions.push({ question, answer });
+    saveBrain(questions);
 
-    fs.writeFileSync(filePath, JSON.stringify(brain, null, 2));
-    res.status(200).json({ message: 'Learning successful' });
+    res.status(200).json({ message: 'Learning successful.' });
   } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).end(); // Method Not Allowed
   }
 }
