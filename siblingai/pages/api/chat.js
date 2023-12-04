@@ -7,12 +7,23 @@ const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
 const loadBrain = () => {
   try {
     const data = fs.readFileSync(brainFilePath, 'utf8');
-    return JSON.parse(data).questions;
+    const parsedData = JSON.parse(data);
+
+    // Check if parsedData has the 'questions' property and it's an array
+    if (parsedData && Array.isArray(parsedData.questions)) {
+      return parsedData.questions;
+    } else {
+      // If not, initialize with an empty questions array
+      saveBrain([]);
+      return [];
+    }
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      saveBrain({ questions: [] });
+    if (error.code === 'ENOENT' || error instanceof SyntaxError) {
+      // File not found or JSON parsing error, initialize with an empty questions array
+      saveBrain([]);
       return [];
     } else {
+      // Other errors, rethrow
       throw error;
     }
   }
