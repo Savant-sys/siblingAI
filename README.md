@@ -22,7 +22,7 @@
 
 # Development Flow
 
-There're 2 important branches: ```main``` and ```dev```, all PRs destination should be set as ```dev``` before it pusehd to ```main```
+There're 2 important branches: ```main``` and ```dev```, all PRs destination should be set as ```dev``` before it pushed to ```main```
 
 1. Create your feature branch from **dev** branch
 
