@@ -46,7 +46,7 @@ def sibling():
             if newResponse.lower() != 'skip':
                 brain["question"].append({"question": clientInput, "answer": newResponse})
                 memory('brain.json', brain)
-                print('Siblin: Thanks for teaching me a new response!')
+                print('SiblingAI: Thanks for teaching me a new response!')
 
 if __name__ == '__main__':
     sibling()
