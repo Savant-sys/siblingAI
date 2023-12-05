@@ -1,32 +1,50 @@
 // pages/api/chat.js
-import { MongoClient } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
-const uri = process.env.MONGODB_URI;
+const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
 
-export default async function handler(req, res) {
+const loadBrain = () => {
+  try {
+    const data = fs.readFileSync(brainFilePath, 'utf8');
+    const parsedData = JSON.parse(data);
+
+    // Check if parsedData has the 'questions' property and it's an array
+    if (parsedData && Array.isArray(parsedData.questions)) {
+      return parsedData.questions;
+    } else {
+      // If not, initialize with an empty questions array
+      saveBrain([]);
+      return [];
+    }
+  } catch (error) {
+    if (error.code === 'ENOENT' || error instanceof SyntaxError) {
+      // File not found or JSON parsing error, initialize with an empty questions array
+      saveBrain([]);
+      return [];
+    } else {
+      // Other errors, rethrow
+      throw error;
+    }
+  }
+};
+
+const saveBrain = (brain) => {
+  fs.writeFileSync(brainFilePath, JSON.stringify({ questions: brain }, null, 2), 'utf8');
+};
+
+export default function handler(req, res) {
   if (req.method === 'POST') {
     const { message } = req.body;
-    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    const questions = loadBrain();
 
-    try {
-      await client.connect();
-      const database = client.db('chatbot');
-      const questions = database.collection('questions');
-
-      const response = await questions.findOne({ question: message.toLowerCase() });
-
-      if (response) {
-        res.status(200).json({ answer: response.answer });
-      } else {
-        res.status(200).json({ answer: "I don’t know that. Can you teach me?", learn: true });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      await client.close();
+    const response = questions.find(q => q.question.toLowerCase() === message.toLowerCase());
+    if (response) {
+      res.status(200).json({ answer: response.answer });
+    } else {
+      res.status(200).json({ answer: "I don’t know that. Can you teach me?", learn: true });
     }
   } else {
-    res.status(405).end();
+    res.status(405).end(); // Method Not Allowed
   }
 }
