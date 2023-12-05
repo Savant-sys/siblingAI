@@ -1,38 +1,36 @@
 // pages/api/chat/learn.js
-import { MongoClient } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
-const uri = process.env.MONGODB_URI;
+const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
 
-export default async function handler(req, res) {
+const loadBrain = () => {
+  try {
+    const data = fs.readFileSync(brainFilePath, 'utf8');
+    return JSON.parse(data).questions;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      saveBrain({ questions: [] });
+      return [];
+    } else {
+      throw error;
+    }
+  }
+};
+
+const saveBrain = (brain) => {
+  fs.writeFileSync(brainFilePath, JSON.stringify({ questions: brain }, null, 2), 'utf8');
+};
+
+export default function handler(req, res) {
   if (req.method === 'POST') {
     const { question, answer } = req.body;
-    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    const questions = loadBrain();
 
-    try {
-      await client.connect();
-      const database = client.db('chatbot');
-      const questions = database.collection('questions');
+    questions.push({ question, answer });
+    saveBrain(questions);
 
-      // Check if the question already exists
-      const existingQuestion = await questions.findOne({ question: question.toLowerCase() });
-      if (existingQuestion) {
-        // Update the answer if the question already exists
-        await questions.updateOne(
-          { _id: existingQuestion._id },
-          { $set: { answer } }
-        );
-      } else {
-        // Add a new question-answer pair if it doesn't exist
-        await questions.insertOne({ question: question.toLowerCase(), answer });
-      }
-
-      res.status(200).json({ message: 'Learning successful.' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      await client.close();
-    }
+    res.status(200).json({ message: 'Learning successful.' });
   } else {
     res.status(405).end(); // Method Not Allowed
   }
