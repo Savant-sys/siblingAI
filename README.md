@@ -48,4 +48,4 @@ There're 2 important branches: ```main``` and ```dev```, all PRs destination sho
 
     ```git pull```
 
-    Repeat step 1 and 2
+    Repeat step 1,2
