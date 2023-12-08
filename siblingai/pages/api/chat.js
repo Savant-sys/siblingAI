@@ -1,6 +1,7 @@
 // pages/api/chat.js
 import fs from 'fs';
 import path from 'path';
+import stringSimilarity from 'string-similarity'; // Import the library
 
 const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
 
@@ -38,10 +39,19 @@ export default function handler(req, res) {
     const { message } = req.body;
     const questions = loadBrain();
 
-    const response = questions.find(q => q.question.toLowerCase() === message.toLowerCase());
-    if (response) {
+    let bestMatch = { bestMatch: { rating: 0 } };
+
+    if (questions.length > 0) {
+      // Find the best match for the user's message
+      bestMatch = stringSimilarity.findBestMatch(message.toLowerCase(), questions.map(q => q.question.toLowerCase()));
+    }
+
+    if (bestMatch.bestMatch.rating > 0.5) { // You can adjust this threshold
+      // If a similar question is found
+      const response = questions[bestMatch.bestMatchIndex];
       res.status(200).json({ answer: response.answer });
     } else {
+      // If no similar question is found
       res.status(200).json({ answer: "I don’t know that. Can you teach me?", learn: true });
     }
   } else {
