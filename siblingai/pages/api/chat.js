@@ -46,7 +46,7 @@ export default function handler(req, res) {
       bestMatch = stringSimilarity.findBestMatch(message.toLowerCase(), questions.map(q => q.question.toLowerCase()));
     }
 
-    if (bestMatch.bestMatch.rating > 0.5) { // You can adjust this threshold
+    if (bestMatch.bestMatch.rating > 0.6) { // You can adjust this threshold
       // If a similar question is found
       const response = questions[bestMatch.bestMatchIndex];
       res.status(200).json({ answer: response.answer });
