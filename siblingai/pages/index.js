@@ -2,13 +2,15 @@ import Head from 'next/head';
 import { useState } from 'react';
 import styles from '../styles/Home.module.css';
 
-export default function Home() {
+export default function Home()
+{
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [learningMode, setLearningMode] = useState(false);
     const [questionToLearn, setQuestionToLearn] = useState('');
 
-    const sendMessage = async (e) => {
+    const sendMessage = async (e) =>
+    {
         e.preventDefault();
         if (input.trim() === '') return;
 
@@ -16,39 +18,30 @@ export default function Home() {
         setMessages(messages => [...messages, { text: userMessage, sender: 'user' }]);
         setInput('');
 
-        if (learningMode) {
-            await fetch('/api/chat/learn', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ question: questionToLearn, answer: userMessage }),
-            });
-            setMessages(msgs => [...msgs, { text: "Thanks for teaching me!", sender: 'bot' }]);
-            setLearningMode(false);
-            setQuestionToLearn('');
-        } else {
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: userMessage }),
-                });
+        const url = learningMode ? '/api/chat/learn' : '/api/chat';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(learningMode ? { question: questionToLearn, answer: userMessage } : { message: userMessage }),
+        });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setMessages(msgs => [...msgs, { text: data.answer, sender: 'bot' }]);
-                
-                    if (data.learn) {
-                        setLearningMode(true);
-                        setQuestionToLearn(userMessage);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to send message:', error);
-            }
+        if (response.ok)
+        {
+            const data = await response.json();
+            setMessages(msgs => [...msgs, { text: data.answer, sender: 'bot' }]);
+            setLearningMode(data.learn ? true : false);
+            if (data.learn) setQuestionToLearn(userMessage);
+        }
+    };
+
+    const clearBrain = async () =>
+    {
+        const response = await fetch('/api/clear', {
+            method: 'POST',
+        });
+        if (response.ok)
+        {
+            setMessages([]);
         }
     };
 
@@ -58,12 +51,10 @@ export default function Home() {
                 <title>SiblingAI ChatBot</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-
             <main className={styles.main} style={{ maxWidth: '800px', width: '100%' }}>
                 <h1 className={styles.title} style={{ color: '#fff' }}>
                     Welcome to SiblingAI ChatBot!
                 </h1>
-
                 <div className="chat-container" style={{ backgroundColor: '#111', padding: '20px', borderRadius: '10px', width: '95%', height: '500px', overflowY: 'auto', maxWidth: '1000px' }}>
                     {messages.map((message, index) => (
                         <div key={index} style={{ textAlign: message.sender === 'user' ? 'right' : 'left' }}>
@@ -73,7 +64,6 @@ export default function Home() {
                         </div>
                     ))}
                 </div>
-
                 <form onSubmit={sendMessage} style={{ marginTop: '20px' }}>
                     <input
                         type="text"
@@ -81,15 +71,10 @@ export default function Home() {
                         onChange={(e) => setInput(e.target.value)}
                         style={{ padding: '10px', width: 'calc(100% - 100px)', marginRight: '10px' }}
                     />
-                    <button
-                        type="submit"
-                        style={{ padding: '10px', width: '90px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '5px' }}
-                    >
-                        Send
-                    </button>
+                    <button type="submit" style={{ padding: '10px', width: '90px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '5px' }}>Send</button>
+                    <button onClick={clearBrain} type="button" style={{ padding: '10px', marginLeft: '10px', backgroundColor: 'red', color: 'white', border: 'none', borderRadius: '5px' }}>Clear Brain</button>
                 </form>
             </main>
-
             <style jsx global>{`
                 body {
                     background-color: #282c34;
