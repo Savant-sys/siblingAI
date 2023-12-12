@@ -2,15 +2,13 @@ import Head from 'next/head';
 import { useState } from 'react';
 import styles from '../styles/Home.module.css';
 
-export default function Home()
-{
+export default function Home() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [learningMode, setLearningMode] = useState(false);
     const [questionToLearn, setQuestionToLearn] = useState('');
 
-    const sendMessage = async (e) =>
-    {
+    const sendMessage = async (e) => {
         e.preventDefault();
         if (input.trim() === '') return;
 
@@ -25,23 +23,20 @@ export default function Home()
             body: JSON.stringify(learningMode ? { question: questionToLearn, answer: userMessage } : { message: userMessage }),
         });
 
-        if (response.ok)
-        {
+        if (response.ok) {
             const data = await response.json();
-            setMessages(msgs => [...msgs, { text: data.answer, sender: 'bot' }]);
+            setMessages(msgs => [...msgs, { text: data.message || data.answer, sender: 'bot' }]);
             setLearningMode(data.learn ? true : false);
             if (data.learn) setQuestionToLearn(userMessage);
         }
     };
 
-    const clearBrain = async () =>
-    {
+    const clearBrain = async () => {
         const response = await fetch('/api/clear', {
             method: 'POST',
         });
-        if (response.ok)
-        {
-            setMessages([]);
+        if (response.ok) {
+            setMessages([]); // Clears the conversation
         }
     };
 
