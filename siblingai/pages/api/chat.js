@@ -8,6 +8,7 @@ import stringSimilarity from 'string-similarity'; // API library
 
 const brainFilePath = path.join(process.cwd(), 'data', 'brain.json');
 
+// returns the response from brain.js to chat.js in order to reply back by the manager in learn.js
 const loadBrain = () =>
 {
   try
@@ -33,6 +34,7 @@ const loadBrain = () =>
   }
 };
 
+// saves the new response into brain.js after learning new things from the user by the manager in learn.js
 const saveBrain = (brain) =>
 {
   fs.writeFileSync(brainFilePath, JSON.stringify({ questions: brain }, null, 2), 'utf8');
