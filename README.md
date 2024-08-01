@@ -1,10 +1,5 @@
 # SiblingAI
 
-## Contributors
-- **Lead Developer** - Michael Khuri
-- **Developer** - Ali Tahami
-- **Developer** - Kanwaljeet Ahluwalia
-
 ## Setup 
 - Have [NodeJS](https://nodejs.org/en/download) Installed
 - Clone this repo
